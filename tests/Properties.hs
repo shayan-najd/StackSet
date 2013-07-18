@@ -16,7 +16,7 @@ import System.Environment
 --import Control.Exception    (assert)
 import qualified Control.Exception.Extensible as C
 import Control.Monad
-import Test.QuickCheck hiding (promote)
+--import Test.QuickCheck hiding (promote)
 import System.IO.Unsafe
 import System.IO
 import System.Random hiding (next)
@@ -26,6 +26,21 @@ import qualified Data.List as L
 import Data.Char            (ord)
 --import Data.Map             (keys,elems)
 import qualified Data.Map as M
+
+import qualified Test.QuickCheck
+import Test.QuickCheck (Arbitrary(arbitrary),choose,vector,suchThat
+                       ,NonNegative,Positive,NonNegative(..),numTests,stdArgs,quickCheckWithResult,Testable(..),maxSuccess,NonEmptyList(..),Result(..))
+import Data.Data(Data(..))
+import Data.Typeable(Typeable(..))
+  
+-- Shayan: to shadow the Property type
+instance Testable (Maybe Bool) where
+  property  Nothing = False Test.QuickCheck.==> True
+  property (Just b) = property b
+infixr 0 ==>
+(==>) :: Bool -> Bool -> Maybe Bool
+False ==> _ = Nothing
+True  ==> p = Just p
 
 -- ---------------------------------------------------------------------
 -- QuickCheck properties for the StackSet
@@ -133,10 +148,23 @@ monotonic (x:y:zs) | x == y-1  = monotonic (y:zs)
 
 prop_invariant = invariant
 
+-- Shayan: to avoid using forall
+--    begin
+data V a = V (Positive Int) [a]
+           deriving (Show,Read,Eq)
+
+instance Arbitrary a => Arbitrary (V a) where
+  arbitrary = do 
+    n  <- arbitrary
+    m  <- choose (1,fromIntegral (n :: Positive Int))
+    ms <- vector m     
+    return $ V n ms    
+
 -- and check other ops preserve invariants
-prop_empty_I  (n :: Positive Int) l = forAll (choose (1,fromIntegral n)) $  \m ->
-                                      forAll (vector m) $ \ms ->
+prop_empty_I  (V n ms) l = --forAll (choose (1,fromIntegral n)) $  \m ->
+                                      --forAll (vector m) $ \ms ->
         invariant $ new l [0..fromIntegral n-1] ms
+--    end
 
 prop_view_I (n :: NonNegative Int) (x :: T) =
     invariant $ view (fromIntegral n) x
