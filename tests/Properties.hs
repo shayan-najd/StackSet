@@ -54,7 +54,7 @@ True  ==> p = Just p
 --
 -- The all important Arbitrary instance for StackSet.
 --
-instance (Integral i, Integral s, Eq a, Arbitrary a, Arbitrary l, Arbitrary sd)
+instance (Ord a, Integral i, Integral s, Eq a, Arbitrary a, Arbitrary l, Arbitrary sd)
         => Arbitrary (StackSet i l a s sd) where
     arbitrary = do
         sz <- choose (1,10)     -- number of workspaces
@@ -82,7 +82,7 @@ instance (Integral i, Integral s, Eq a, Arbitrary a, Arbitrary l, Arbitrary sd)
 -- 'fs' random focused window on each workspace
 -- 'xs' list of list of windows
 --
-fromList :: (Integral i, Integral s, Eq a) => (i, [sd], [Maybe Int], [[a]], l) -> StackSet i l a s sd
+--fromList :: (Integral i, Integral s, Eq a) => (i, [sd], [Maybe Int], [[a]], l) -> StackSet i l a s sd
 fromList (_,_,_,[],_) = error "Cannot build a StackSet from an empty list"
 
 fromList (o,m,fs,xs,l) =
@@ -649,7 +649,7 @@ prop_abort x = unsafePerformIO $ C.catch (abort "fail")
 prop_new_abort x = unsafePerformIO $ C.catch f
                                          (\(C.SomeException e) -> return $ show e == "xmonad: StackSet: non-positive argument to StackSet.new" )
    where
-     f = new undefined{-layout-} [] [] `seq` return False
+     f = (new undefined{-layout-} [] [] :: StackSet Int Int Int Int Int)`seq` return False
 
      _ = x :: Int
 
@@ -1225,3 +1225,5 @@ instance Arbitrary EmptyStackSet where
 --  try _ 0 = return Nothing
 --  try k n = do x <- resize (2*k+n) gen
 --               if p x then return (Just x) else try (k+1) (n-1)
+deriving instance Typeable NonNegative
+deriving instance Data a => Data (NonNegative a)
