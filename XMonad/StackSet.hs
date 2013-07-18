@@ -51,7 +51,13 @@ module XMonad.StackSet (
         abort
     ) where
 
-import Prelude hiding (filter)
+-- shayan: making the Prelude imports explicit
+-- import Prelude hiding (filter)
+import Prelude
+       (Ord, Eq, Rational, Show, Read, String, Integral,
+        Bool(True, False), Maybe(Just, Nothing), maybe, reverse, map, elem,
+        return, otherwise, concatMap, not, null, length, zip3, until, any,
+        error, (.), (/=), (==), (<=), ($), (++), (>>=), (&&))
 import Data.Maybe   (listToMaybe,isJust,fromMaybe)
 import qualified Data.List as L (deleteBy,find,splitAt,filter,nub)
 import Data.List ( (\\) )
